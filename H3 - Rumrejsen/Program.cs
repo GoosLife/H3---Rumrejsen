@@ -1,4 +1,6 @@
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace H3___Rumrejsen
 {
     public class Program
@@ -13,6 +15,9 @@ namespace H3___Rumrejsen
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            // Add appsettings.json configuration file
+            builder.Configuration.AddJsonFile("appsettings.json");
 
             var app = builder.Build();
 
