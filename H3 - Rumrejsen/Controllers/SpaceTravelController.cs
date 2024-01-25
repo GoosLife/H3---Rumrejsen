@@ -1,4 +1,5 @@
-﻿using H3___Rumrejsen.DataAccess;
+﻿using H3___Rumrejsen.Api;
+using H3___Rumrejsen.DataAccess;
 using H3___Rumrejsen.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,12 +10,11 @@ namespace H3___Rumrejsen.Controllers
     public class SpaceTravelController : Controller
     {
         [HttpGet("[action]")]
-        public List<GalacticRoute> GetGalacticRoutes(string apiKey)
+        public List<GalacticRoute> GetGalacticRoutes()
         {
-            JsonDb db = new JsonDb();
-
-            if (db.ValidateApiKey(apiKey))
+            if (Request.Headers.TryGetValue("X-API-Key", out var apiKey) && ApiKeyValidator.Validate(apiKey))
             {
+
                 try
                 {
                     return new JsonDb().GetRoutes();
@@ -37,14 +37,22 @@ namespace H3___Rumrejsen.Controllers
         [HttpGet("[action]")]
         public GalacticRoute GetGalacticRoute(string name)
         {
-            try
+            if (Request.Headers.TryGetValue("X-Api-Key", out var apiKey) && ApiKeyValidator.Validate(apiKey))
             {
-                return new JsonDb().GetRoute(name)!;
+                try
+                {
+                    return new JsonDb().GetRoute(name)!;
+                }
+                catch (FileNotFoundException e)
+                {
+                    // Return error 500 if the database file is missing.
+                    Response.StatusCode = 500;
+                    return new GalacticRoute();
+                }
             }
-            catch (FileNotFoundException e)
+            else
             {
-                // Return error 500 if the database file is missing.
-                Response.StatusCode = 500;
+                Response.StatusCode = 401;
                 return new GalacticRoute();
             }
         }

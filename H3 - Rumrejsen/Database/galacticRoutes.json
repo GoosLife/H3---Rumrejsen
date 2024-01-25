@@ -90,12 +90,15 @@
     {
       "key": "RR-jKuOWVrH2XEzcf4EPemwWUZJZKfgw",
       "type": "cadet",
-      "expires": null,
-      "uses": 5
+      "renewalPeriod": 30,
+      "lastRenewed": null,
+      "usesPerPeriod": 5,
+      "usesLeft": 5,
+      "expires": null
     },
     {
       "key": "RR-IKOghlhsw1CdF6lTeMWpZfGSuvyoN",
-      "type": "master",
+      "type": "captain",
       "expires": null
     }
   ]

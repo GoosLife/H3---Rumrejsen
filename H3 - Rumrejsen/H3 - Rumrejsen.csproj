@@ -21,4 +21,13 @@
     <None Include="Database\galacticRoutes.json" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="APIKeyGenerator">
+      <HintPath>..\..\..\..\Libraries\GoosLife\APIKeyGenerator\APIKeyGenerator\bin\Debug\net7.0\APIKeyGenerator.dll</HintPath>
+    </Reference>
+    <Reference Include="Logger">
+      <HintPath>..\..\..\..\Libraries\GoosLife\Logger\Logger\bin\Debug\net7.0\Logger.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

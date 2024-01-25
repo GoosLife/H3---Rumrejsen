@@ -1,4 +1,4 @@
-﻿namespace H3___Rumrejsen.DataAccess.Utility
+﻿namespace H3___Rumrejsen.Utility
 {
     public class FileUtility
     {

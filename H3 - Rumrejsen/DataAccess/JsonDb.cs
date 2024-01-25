@@ -1,16 +1,16 @@
-﻿using H3___Rumrejsen.DataAccess.Utility;
-using H3___Rumrejsen.Models;
-using Newtonsoft.Json;
+﻿using H3___Rumrejsen.Models;
 using Newtonsoft.Json.Linq;
-using System.Linq.Expressions;
-using System.Security.Cryptography;
-using System.Text.Json.Nodes;
+using GoosLogger;
+using H3___Rumrejsen.Utility;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using System.Reflection;
 
 namespace H3___Rumrejsen.DataAccess
 {
     public class JsonDb : IDbAccess
     {
         private readonly string Path;
+        private List<ApiKey> ApiKeys;
 
         public JsonDb()
         {
@@ -18,6 +18,8 @@ namespace H3___Rumrejsen.DataAccess
             string rootFolder = System.IO.Directory.GetCurrentDirectory();
 
             Path = System.IO.Path.Combine(rootFolder, "Database\\galacticRoutes.json");
+
+            PopulateApiKeys();
         }
 
         /// <summary>
@@ -32,6 +34,29 @@ namespace H3___Rumrejsen.DataAccess
         public JsonDb(string path)
         {
             Path = path;
+
+            ApiKeys = new List<ApiKey>();
+            JToken allKeys = GetApiKeys();
+
+            PopulateApiKeys();
+        }
+
+        private void PopulateApiKeys()
+        {
+            ApiKeys = new List<ApiKey>();
+            JToken allKeys = GetApiKeys();
+
+            foreach (JToken apiKey in allKeys)
+            {
+                if (apiKey["type"]!.ToString() == "cadet")
+                {
+                    ApiKeys!.Add(apiKey.ToObject<CadetKey>()!);
+                }
+                else
+                {
+                    ApiKeys!.Add(apiKey.ToObject<ApiKey>()!);
+                }
+            }
         }
 
         public GalacticRoute? GetRoute(string name)
@@ -63,8 +88,9 @@ namespace H3___Rumrejsen.DataAccess
                         JToken jsonArray = jsonObject["galacticRoutes"];
                         return jsonArray.ToObject<List<GalacticRoute>>()!;
                     }
-                    catch(Exception e)
+                    catch (Exception e)
                     {
+                        Logger.Log(e.Message);
                         throw new InvalidDataException("No galactic routes found in database file.");
                     }
 
@@ -77,7 +103,7 @@ namespace H3___Rumrejsen.DataAccess
             throw new FileNotFoundException("Database file could not be found.");
         }
 
-        public bool ValidateApiKey(string key)
+        public JToken GetApiKeys()
         {
             // Check if API key exists in galacticRoutes.json
             if (FileUtility.FileExists(Path))
@@ -86,19 +112,15 @@ namespace H3___Rumrejsen.DataAccess
                 {
                     string jsonString = System.Text.Encoding.UTF8.GetString(FileUtility.GetFileContent(Path)!);
 
-                    // Get the galacticRoutes array from the JSON file, then deserialize it into a list of GalacticRoute objects.
                     JObject jsonObject = JObject.Parse(jsonString);
 
                     try
                     {
-                        JToken jsonArray = jsonObject["apiKeys"];
-
-                        // Check if the key exists in the array. Each entry in jsonArray contains the properties key, type and expires, so we need to check the key property.
-                        return jsonArray!.Any(x => x["key"]?.ToString() == key);
+                        return jsonObject["apiKeys"];
                     }
                     catch
                     {
-                        throw new UnauthorizedAccessException("Unauthorized access: API key doesn't exist.");
+                        throw new UnauthorizedAccessException("Unauthorized access: Invalid API key.");
                     }
 
                 }
@@ -109,6 +131,31 @@ namespace H3___Rumrejsen.DataAccess
             }
 
             throw new FileNotFoundException("Database file could not be found.");
+        }
+
+        public ApiKey GetApiKey(string key)
+        {
+            try
+            {
+                int count = ApiKeys.Where(x => x.Key == key).Count();
+
+                if (count > 1)
+                {
+                    throw new InvalidOperationException("Several API keys with the same key value exist. This should never happen.");
+                }
+
+                if (count == 0)
+                {
+                    throw new UnauthorizedAccessException("Unauthorized access: Invalid API key.");
+                }
+
+                return ApiKeys.Single(x => x.Key == key);
+            }
+            catch
+            {
+                throw;
+            }
+
         }
     }
 }

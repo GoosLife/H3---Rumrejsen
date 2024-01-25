@@ -1,4 +1,5 @@
 
+using H3___Rumrejsen.Api;
 using System.Diagnostics.CodeAnalysis;
 
 namespace H3___Rumrejsen
@@ -34,6 +35,8 @@ namespace H3___Rumrejsen
 
 
             app.MapControllers();
+
+            ApiKeyValidator.Init();
 
             app.Run();
         }

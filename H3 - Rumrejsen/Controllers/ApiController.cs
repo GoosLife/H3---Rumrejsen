@@ -1,5 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System.Security.Cryptography;
+using GoosApiKeyGenerator;
+using H3___Rumrejsen.DataAccess;
+using GoosLogger;
+using H3___Rumrejsen.Api;
 
 namespace H3___Rumrejsen.Controllers
 {
@@ -20,28 +23,21 @@ namespace H3___Rumrejsen.Controllers
             // Check if API key is set in header
             if (Request.Headers.TryGetValue("X-API-Key", out var apiKey))
             {
-                // Check if API key is valid
-                if (apiKey == Configuration.GetValue<string>("ApiKey"))
+                try
                 {
-                    return "Hello World!";
+                    // Check if API key is valid
+                    if (ApiKeyValidator.Validate(apiKey))
+                    {
+                        return "Hello World!";
+                    }
+                }
+                catch (Exception e)
+                {
+                    Logger.Log(e.Message);
                 }
             }
 
-            return GenerateApiKey();
+            return ApiKeyGenerator.GenerateApiKey(Configuration.GetValue<int>("ApiKeyLength"));
         }
-
-        private string GenerateApiKey()
-        {
-            var bytes = RandomNumberGenerator.GetBytes(Configuration.GetValue<int>("ApiKeyLength"));
-
-            string base64String = Convert.ToBase64String(bytes)
-                .Replace("+", "-")
-                .Replace("/", "_");
-
-            var keyLength = 32 - "RR-".Length;
-
-            return "RR-" + base64String[..keyLength];
-        }
-
     }
 }
